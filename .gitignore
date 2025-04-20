@@ -1,0 +1,27 @@
+node_modules/
+
+# Build output (Vite default build folder)
+dist/
+
+# Vite cache
+.vite/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Log files
+*.log
+
+# IDE/editor-specific files
+.vscode/
+.idea/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Tailwind JIT Cache (if using JIT)
+tailwind.config.js.cache/
+
