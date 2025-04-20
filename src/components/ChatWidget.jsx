@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { MessageCircle } from "lucide-react";
 
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -30,7 +32,7 @@ const ChatWidget = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post("http://127.0.0.1:5000/chat/ask", {
+      const response = await axios.post(`${backendUrl}/chat/ask`, {
         question: input,
         conversation_id: conversationId,
       });
@@ -62,7 +64,7 @@ const ChatWidget = () => {
         console.log("Extracted Data:", extractedData);
 
         const signupResponse = await axios.post(
-          "http://127.0.0.1:5000/user/sign_up",
+          `${backendUrl}/user/sign_up`,
           {
             // Explicitly include required fields
             name: extractedData.name,
@@ -89,7 +91,7 @@ const ChatWidget = () => {
         }
       } else if (intent === "update") {
         const updateResponse = await axios.post(
-          "http://127.0.0.1:5000/user/update_profile",
+          `${backendUrl}/user/update_profile`,
           {
             ...extractedData, // No conversation_id here
           }
