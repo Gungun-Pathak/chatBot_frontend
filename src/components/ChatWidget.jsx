@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, ThumbsUp, ThumbsDown, Bot } from "lucide-react";
+import EmojiPicker from "emoji-picker-react"; // Install with: npm install emoji-picker-react
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -11,6 +12,7 @@ const ChatWidget = () => {
   const [loading, setLoading] = useState(false);
   const [conversationId, setConversationId] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef(null);
 
   const toggleChat = () => setIsOpen(!isOpen);
@@ -25,7 +27,6 @@ const ChatWidget = () => {
 
   const sendMessage = async () => {
     if (input.trim() === "") return;
-
     const userMessage = { sender: "user", message: input };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
@@ -61,23 +62,11 @@ const ChatWidget = () => {
       const extractedData = response.data.extracted_data;
 
       if (intent === "signup") {
-        console.log("Extracted Data:", extractedData);
-
-        const signupResponse = await axios.post(
-          `${backendUrl}/user/sign_up`,
-          {
-            // Explicitly include required fields
-            name: extractedData.name,
-            email: extractedData.email,
-            // Include other fields
-            ...extractedData,
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const signupResponse = await axios.post(`${backendUrl}/user/sign_up`, {
+          name: extractedData.name,
+          email: extractedData.email,
+          ...extractedData,
+        });
 
         if (signupResponse.status === 201) {
           setMessages((prev) => [
@@ -93,7 +82,7 @@ const ChatWidget = () => {
         const updateResponse = await axios.post(
           `${backendUrl}/user/update_profile`,
           {
-            ...extractedData, // No conversation_id here
+            ...extractedData,
           }
         );
 
@@ -107,8 +96,6 @@ const ChatWidget = () => {
           ]);
           setUserProfile(updateResponse.data.user);
         }
-      } else {
-        setMessages((prev) => [...prev, assistantMessage]);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -124,85 +111,125 @@ const ChatWidget = () => {
     }
   };
 
+  const handleEmojiClick = (emojiObject) => {
+    setInput((prev) => prev + emojiObject.emoji);
+    setShowEmojiPicker(false);
+  };
+
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      <button
-        className="bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition"
-        onClick={toggleChat}
-      >
-        <MessageCircle className="w-6 h-6" />
-      </button>
+    <div>
+      {/* Chat Toggle Button */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <button
+          className="bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition"
+          onClick={toggleChat}
+        >
+          <MessageCircle className="w-6 h-6" />
+        </button>
+      </div>
 
+      {/* Fullscreen Chat */}
+      {/* Fullscreen Chat */}
       {isOpen && (
-        <div className="w-80 h-96 bg-white shadow-xl rounded-lg flex flex-col mt-3">
-          <div className="bg-blue-600 text-white p-3 rounded-t-lg font-semibold">
-            Asha AI Chatbot
-          </div>
-
-          <div className="flex-1 p-3 overflow-y-auto space-y-2">
-            {messages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`flex ${
-                  msg.sender === "user" ? "justify-end" : "justify-start"
-                }`}
+        <div className="fixed inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="w-full max-w-2xl h-[90vh] bg-white rounded-lg shadow-lg flex flex-col relative glow-chat">
+            {/* Header */}
+            <div className="relative bg-blue-600 text-white pt-6 pb-12 px-4 rounded-t-lg font-semibold overflow-hidden">
+              <div className="z-10 relative text-lg flex items-center gap-2">
+                🤖 Asha AI Chatbot
+              </div>
+              <svg
+                className="absolute bottom-0 left-0 w-full transform -scale-x-100"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 1440 150"
               >
+                <path
+                  fill="#ffffff"
+                  fillOpacity="1"
+                  d="M0,0 C360,120 1080,0 1440,120 L1440,150 L0,150 Z"
+                ></path>
+              </svg>
+            </div>
+
+            {/* Chat Area */}
+            <div className="flex-1 p-4 overflow-y-auto space-y-3">
+              {messages.map((msg, idx) => (
                 <div
-                  className={`p-2 rounded-lg max-w-xs text-sm ${
-                    msg.sender === "user"
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200"
+                  key={idx}
+                  className={`flex ${
+                    msg.sender === "user" ? "justify-end" : "justify-start"
                   }`}
                 >
-                  {msg.message}
+                  <div className="flex items-end gap-2 max-w-[75%]">
+                    {msg.sender === "assistant" && (
+                      <Bot className="text-blue-500 w-5 h-5" />
+                    )}
+                    <div
+                      className={`rounded-lg px-4 py-2 text-sm ${
+                        msg.sender === "user"
+                          ? "bg-blue-500 text-white"
+                          : "bg-gray-100 text-black"
+                      }`}
+                    >
+                      {msg.message}
+                      {msg.sender === "assistant" && (
+                        <div className="flex mt-1 justify-end gap-1">
+                          <ThumbsUp
+                            className="w-4 h-4 text-green-500 hover:scale-110 cursor-pointer"
+                            title="Helpful"
+                          />
+                          <ThumbsDown
+                            className="w-4 h-4 text-red-500 hover:scale-110 cursor-pointer"
+                            title="Not Helpful"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
-            {loading && (
-              <div className="text-gray-500 text-sm">
-                Assistant is typing...
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
+              ))}
+              {loading && (
+                <div className="text-gray-500 text-sm">
+                  Assistant is typing...
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
 
-          <div className="p-2 border-t flex">
-            <input
-              className="flex-1 border border-gray-300 p-2 rounded-l-md text-sm"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              placeholder="Type a message..."
-            />
-            <button
-              onClick={sendMessage}
-              className="bg-blue-600 text-white px-4 py-2 rounded-r-md text-sm"
-            >
-              Send
-            </button>
-          </div>
-        </div>
-      )}
-
-      {userProfile && (
-        <div className="fixed bottom-6 left-6 z-50 bg-white p-3 shadow-lg rounded-lg w-80">
-          <h3 className="text-xl font-semibold">User Profile</h3>
-          <div className="mt-2">
-            <p>
-              <strong>Name:</strong> {userProfile.name}
-            </p>
-            <p>
-              <strong>Email:</strong> {userProfile.email}
-            </p>
-            <p>
-              <strong>Phone:</strong> {userProfile.phone}
-            </p>
-            <p>
-              <strong>Skills:</strong> {userProfile.skills.join(", ")}
-            </p>
-            <p>
-              <strong>Bio:</strong> {userProfile.bio}
-            </p>
+            {/* Input Area */}
+            <div className="border-t p-3 flex items-center gap-2">
+              <button
+                onClick={() => setShowEmojiPicker((prev) => !prev)}
+                className="text-xl"
+              >
+                😊
+              </button>
+              {showEmojiPicker && (
+                <div className="absolute bottom-20 left-4 z-50">
+                  <EmojiPicker onEmojiClick={handleEmojiClick} />
+                </div>
+              )}
+              <input
+                type="text"
+                className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm"
+                placeholder="Type a message..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              />
+              <button
+                onClick={sendMessage}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm"
+              >
+                Send
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="ml-2 text-gray-500 hover:text-red-500 text-xs"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

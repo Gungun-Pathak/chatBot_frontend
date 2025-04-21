@@ -1,1 +1,15 @@
 @import "tailwindcss";
+
+.glow-chat {
+  box-shadow: 0 0 15px 5px rgba(135, 206, 250, 0.6); /* Slightly darker light blue glow */
+  animation: glow 1.5s infinite alternate;
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 15px 5px rgba(135, 206, 250, 0.6); /* Slightly darker light blue glow */
+  }
+  100% {
+    box-shadow: 0 0 30px 10px rgba(135, 206, 250, 0.8); /* Slightly darker light blue glow */
+  }
+}
