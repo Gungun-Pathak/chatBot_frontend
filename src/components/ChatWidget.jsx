@@ -53,6 +53,7 @@ const ChatWidget = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const toggleChat = () => setIsOpen(!isOpen);
   const toggleSuggestions = () => setShowSuggestions(!showSuggestions);
@@ -64,6 +65,82 @@ const ChatWidget = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, loading]);
+
+  const handleResumeUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        sender: "user",
+        message: "Uploading resume for review...",
+        isUpload: true,
+        fileName: file.name,
+      },
+    ]);
+    setLoading(true);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await axios.post(
+        `${backendUrl}/resume/analyze_resume`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+      const analysis = response.data;
+      const structuredResponse = {
+        summary: "Resume Analysis Results 📄",
+        sections: [
+          { title: "Key Skills", icon: "clipboard", content: analysis.skills },
+          {
+            title: "Recommended Courses",
+            icon: "link",
+            content: analysis.recommended_courses,
+          },
+          {
+            title: "Career Roadmap",
+            icon: "calendar",
+            content: analysis.career_roadmap,
+          },
+          {
+            title: "Shortcomings",
+            icon: "clipboard",
+            content: analysis.shortcomings,
+          },
+          {
+            title: "Improvement Tips",
+            icon: "clipboard",
+            content: analysis.improvement_tips,
+          },
+        ],
+      };
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: "assistant",
+          message: "Here's your resume analysis:",
+          structuredResponse,
+        },
+      ]);
+    } catch (error) {
+      console.error("Resume analysis error:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: "assistant",
+          message: "Error analyzing resume. Please try again.",
+        },
+      ]);
+    } finally {
+      setLoading(false);
+      fileInputRef.current.value = "";
+    }
+  };
 
   const getSectionIcon = (icon) => {
     switch (icon) {
@@ -99,11 +176,19 @@ const ChatWidget = () => {
               <h3 className="font-medium text-sm">{section.title}</h3>
             </div>
             <ul className="list-disc pl-5 space-y-1">
-              {section.content?.map((item, itemIndex) => (
-                <li key={itemIndex} className="text-gray-700 text-sm">
-                  {item.replace(/\*\*/g, "")}
-                </li>
-              ))}
+              {section.content?.map((item, itemIndex) => {
+                // Handle both string and object content items
+                const content =
+                  typeof item === "object"
+                    ? `${item.step ? `${item.step}. ` : ""}${item.description}`
+                    : item.replace(/\*\*/g, "");
+
+                return (
+                  <li key={itemIndex} className="text-gray-700 text-sm">
+                    {content}
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ))}
@@ -291,9 +376,16 @@ const ChatWidget = () => {
                           : "bg-gray-50 text-gray-800 border border-gray-100"
                       }`}
                     >
-                      {msg.structuredResponse
-                        ? renderStructuredContent(msg.structuredResponse)
-                        : msg.message}
+                      {msg.isUpload ? (
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4" />
+                          <span>Resume uploaded ({msg.fileName})</span>
+                        </div>
+                      ) : msg.structuredResponse ? (
+                        renderStructuredContent(msg.structuredResponse)
+                      ) : (
+                        msg.message
+                      )}
                       {msg.sender === "assistant" && (
                         <div className="flex mt-1 justify-end gap-1">
                           <ThumbsUp
@@ -347,7 +439,13 @@ const ChatWidget = () => {
                     return (
                       <button
                         key={index}
-                        onClick={() => sendMessage(suggestion.text)}
+                        onClick={() => {
+                          if (suggestion.text === "resume review") {
+                            fileInputRef.current.click();
+                          } else {
+                            sendMessage(suggestion.text);
+                          }
+                        }}
                         className="flex items-center gap-2 px-3 py-2 text-sm bg-white text-gray-800 rounded-xl
                      hover:bg-blue-50 transition-all duration-200 border border-gray-200
                      hover:border-blue-200 hover:text-blue-800"
@@ -410,6 +508,14 @@ const ChatWidget = () => {
                 ✕
               </button>
             </div>
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="application/pdf"
+              className="hidden"
+              onChange={handleResumeUpload}
+            />
           </div>
         </div>
       )}
