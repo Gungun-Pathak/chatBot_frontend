@@ -27,21 +27,93 @@ const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const suggestions = [
   {
-    text: "frequently asked questions",
-    icon: HelpCircle,
+    text: "ask me anything about jobsForHer foundation",
+    icon: Building,
     color: "text-blue-600",
   },
   {
-    text: "questions related jobsForHer foundation",
-    icon: Building,
+    text: "faqs about jobsForHer foundation",
+    icon: HelpCircle,
     color: "text-purple-600",
   },
-  { text: "resume review", icon: FileText, color: "text-green-600" },
-  { text: "work life balance", icon: Scale, color: "text-orange-600" },
-  { text: "call me and ask anything", icon: Phone, color: "text-red-600" },
-  { text: "jobs/mentorship/events", icon: Briefcase, color: "text-indigo-600" },
-  { text: "signup/profile update", icon: User, color: "text-pink-600" },
+  {
+    text: "give me all tech events",
+    icon: Calendar,
+    color: "text-green-600",
+  },
+  {
+    text: "give me all tech job openings",
+    icon: Briefcase,
+    color: "text-orange-600",
+  },
+  {
+    text: "give me latest tech news",
+    icon: LinkIcon,
+    color: "text-red-600",
+  },
+  {
+    text: "strategies to implement work life balance for women",
+    icon: Scale,
+    color: "text-indigo-600",
+  },
+  {
+    text: "resume review",
+    icon: FileText,
+    color: "text-pink-600",
+  },
+  {
+    text: "for sign up/update profile provide email,phone no,bio,skill,name",
+    icon: User,
+    color: "text-teal-600",
+  },
+  {
+    text: "call me",
+    icon: Phone,
+    color: "text-yellow-600",
+  },
 ];
+
+// Update the button onClick handler in the suggestions map:
+{suggestions.map((suggestion, index) => {
+  const Icon = suggestion.icon;
+  return (
+    <button
+      key={index}
+      onClick={() => {
+        if (suggestion.text === "resume review") {
+          fileInputRef.current.click();
+        } else if (
+          suggestion.text === "for sign up/update profile provide email,phone no,bio,skill,name"
+        ) {
+          setMessages((prev) => [
+            ...prev,
+            { sender: "user", message: suggestion.text },
+            {
+              sender: "assistant",
+              message: "Please provide your:\n- Email\n- Phone Number\n- Bio\n- Skills\n- Name\nWe'll update your profile accordingly.",
+            },
+          ]);
+        } else if (suggestion.text === "call me") {
+          setMessages((prev) => [
+            ...prev,
+            { sender: "user", message: suggestion.text },
+            {
+              sender: "assistant",
+              message: "Our representative will call you shortly. Please ensure your contact details are up to date!",
+            },
+          ]);
+        } else {
+          sendMessage(suggestion.text);
+        }
+      }}
+      className="flex items-center gap-2 px-3 py-2 text-sm bg-white text-gray-800 rounded-xl hover:bg-blue-50 transition-all duration-200 border border-gray-200 hover:border-blue-200 hover:text-blue-800"
+    >
+      <Icon className={`w-4 h-4 ${suggestion.color}`} />
+      <span className="whitespace-nowrap">{suggestion.text}</span>
+    </button>
+  );
+})}
+
 
 const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
