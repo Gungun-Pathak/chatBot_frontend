@@ -32,7 +32,7 @@ const suggestions = [
     color: "text-blue-600",
   },
   {
-    text: "faqs about jobsForHer foundation",
+    text: "faqs about jobsForHer (foundation,programs,impact,partnerships,technical",
     icon: HelpCircle,
     color: "text-purple-600",
   },
