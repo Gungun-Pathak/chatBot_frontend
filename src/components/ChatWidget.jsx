@@ -74,46 +74,50 @@ const suggestions = [
 ];
 
 // Update the button onClick handler in the suggestions map:
-{suggestions.map((suggestion, index) => {
-  const Icon = suggestion.icon;
-  return (
-    <button
-      key={index}
-      onClick={() => {
-        if (suggestion.text === "resume review") {
-          fileInputRef.current.click();
-        } else if (
-          suggestion.text === "for sign up/update profile provide email,phone no,bio,skill,name"
-        ) {
-          setMessages((prev) => [
-            ...prev,
-            { sender: "user", message: suggestion.text },
-            {
-              sender: "assistant",
-              message: "Please provide your:\n- Email\n- Phone Number\n- Bio\n- Skills\n- Name\nWe'll update your profile accordingly.",
-            },
-          ]);
-        } else if (suggestion.text === "call me") {
-          setMessages((prev) => [
-            ...prev,
-            { sender: "user", message: suggestion.text },
-            {
-              sender: "assistant",
-              message: "Our representative will call you shortly. Please ensure your contact details are up to date!",
-            },
-          ]);
-        } else {
-          sendMessage(suggestion.text);
-        }
-      }}
-      className="flex items-center gap-2 px-3 py-2 text-sm bg-white text-gray-800 rounded-xl hover:bg-blue-50 transition-all duration-200 border border-gray-200 hover:border-blue-200 hover:text-blue-800"
-    >
-      <Icon className={`w-4 h-4 ${suggestion.color}`} />
-      <span className="whitespace-nowrap">{suggestion.text}</span>
-    </button>
-  );
-})}
-
+{
+  suggestions.map((suggestion, index) => {
+    const Icon = suggestion.icon;
+    return (
+      <button
+        key={index}
+        onClick={() => {
+          if (suggestion.text === "resume review") {
+            fileInputRef.current.click();
+          } else if (
+            suggestion.text ===
+            "for sign up/update profile provide email,phone no,bio,skill,name"
+          ) {
+            setMessages((prev) => [
+              ...prev,
+              { sender: "user", message: suggestion.text },
+              {
+                sender: "assistant",
+                message:
+                  "Please provide your:\n- Email\n- Phone Number\n- Bio\n- Skills\n- Name\nWe'll update your profile accordingly.",
+              },
+            ]);
+          } else if (suggestion.text === "call me") {
+            setMessages((prev) => [
+              ...prev,
+              { sender: "user", message: suggestion.text },
+              {
+                sender: "assistant",
+                message:
+                  "Our representative will call you shortly. Please ensure your contact details are up to date!",
+              },
+            ]);
+          } else {
+            sendMessage(suggestion.text);
+          }
+        }}
+        className="flex items-center gap-2 px-3 py-2 text-sm bg-white text-gray-800 rounded-xl hover:bg-blue-50 transition-all duration-200 border border-gray-200 hover:border-blue-200 hover:text-blue-800"
+      >
+        <Icon className={`w-4 h-4 ${suggestion.color}`} />
+        <span className="whitespace-nowrap">{suggestion.text}</span>
+      </button>
+    );
+  });
+}
 
 const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -548,31 +552,12 @@ const ChatWidget = () => {
               <input
                 type="text"
                 className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                placeholder="Type your message here..."
+                placeholder="Type your message here and press Enter..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && sendMessage()}
               />
-              <button
-                onClick={sendMessage}
-                className="bg-blue-800 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-900 transition-colors flex items-center gap-2"
-              >
-                Send
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                  />
-                </svg>
-              </button>
+
               <button
                 onClick={() => setIsOpen(false)}
                 className="ml-2 text-gray-500 hover:text-red-500 transition-colors"
